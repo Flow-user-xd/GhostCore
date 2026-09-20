@@ -1315,6 +1315,7 @@ class GhostCoreRequestHandler(SimpleHTTPRequestHandler):
 
             def _launch_wrapper():
                 try:
+                    from stealth_engine import launch_stealth_profile
                     launch_url = profile.get('startUrl') or "about:blank"
                     real_pid, port_used, active_bridge = launch_stealth_profile(
                         profile_id, profile['name'], width, height, useragent,
