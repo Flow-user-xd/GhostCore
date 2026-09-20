@@ -823,7 +823,7 @@ class GhostCoreRequestHandler(SimpleHTTPRequestHandler):
             import platform
             host_os = f"{platform.system()} {platform.release()}"
             
-            host_chrome_version = "151.0.7922.173"
+            host_chrome_version = ""
             version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'browser_core', 'version.txt')
             if os.path.exists(version_file):
                 try:
@@ -831,6 +831,15 @@ class GhostCoreRequestHandler(SimpleHTTPRequestHandler):
                         host_chrome_version = f.read().strip()
                 except:
                     pass
+            
+            if not host_chrome_version:
+                import glob
+                manifests = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'browser_core', '*.manifest'))
+                if manifests:
+                    host_chrome_version = os.path.basename(manifests[0]).replace('.manifest', '')
+            
+            if not host_chrome_version:
+                host_chrome_version = "150.0.0.0" # Fallback
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')

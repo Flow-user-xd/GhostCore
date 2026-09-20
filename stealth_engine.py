@@ -1482,28 +1482,53 @@ async def apply_cdp_stealth(port, target_url, ua_str, width, height, webgl_vendo
         print(f"[Stealth Engine CDP] Extension-based injection is still active (primary method)", flush=True)
 
 
-def sanitize_user_agent(ua, os_hint=""):
+def get_host_chrome_version():
+    host_chrome_version = ""
+    browser_core_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'browser_core')
+    version_file = os.path.join(browser_core_dir, 'version.txt')
+    if os.path.exists(version_file):
+        try:
+            with open(version_file, 'r') as f:
+                host_chrome_version = f.read().strip()
+        except:
+            pass
+    if not host_chrome_version:
+        import glob
+        manifests = glob.glob(os.path.join(browser_core_dir, '*.manifest'))
+        if manifests:
+            host_chrome_version = os.path.basename(manifests[0]).replace('.manifest', '')
+    if not host_chrome_version:
+        host_chrome_version = "151.0.0.0"
+    return host_chrome_version
+
+def sanitize_user_agent(ua, os_hint="", host_chrome_version=None):
     """
     Ensures User-Agent uses modern Chromium/CriOS syntax matching the portable engine.
     """
+    if not host_chrome_version:
+        host_chrome_version = get_host_chrome_version()
+        
+    major_version = host_chrome_version.split('.')[0] if '.' in host_chrome_version else "151"
+    
     if not ua:
-        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+        return f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{host_chrome_version} Safari/537.36"
 
-    # Upgrade any older Chrome/CriOS versions to match the installed Chromium 151 engine (standard reduced UA format)
-    ua = re.sub(r'Chrome/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'Chrome/151.0.0.0', ua)
-    ua = re.sub(r'CriOS/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'CriOS/151.0.0.0', ua)
+    # Upgrade any older Chrome/CriOS versions to match the installed Chromium engine (standard reduced UA format)
+    ua = re.sub(r'Chrome/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', f'Chrome/{host_chrome_version}', ua)
+    ua = re.sub(r'CriOS/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', f'CriOS/{host_chrome_version}', ua)
 
     if "Version/" in ua and "Safari/" in ua and "Chrome/" not in ua and "CriOS/" not in ua:
         if "iPhone" in ua or "iPad" in ua or "iOS" in os_hint or "iPhone" in os_hint or "iPad" in os_hint:
-            ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) CriOS/151.0.0.0 Mobile/15E148 Safari/537.36"
+            ua = f"Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) CriOS/{host_chrome_version} Mobile/15E148 Safari/537.36"
         else:
-            ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+            ua = f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{host_chrome_version} Safari/537.36"
 
     return ua
 
 
 def launch_stealth_profile(profile_id, name, width, height, useragent, proxy_str, port=9222, url="about:blank", webgl_vendor="Google Inc. (NVIDIA)", webgl_renderer="ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0)", cpu_cores=8, memory_gb=16, proxy_user="", proxy_pass="", timezone_id="America/New_York", custom_extensions=None, fingerprint_seed=None, locale="", accept_language="", webrtc="Proxy IP"):
-    useragent = sanitize_user_agent(useragent, name)
+    real_chrome_version = get_host_chrome_version()
+    useragent = sanitize_user_agent(useragent, name, real_chrome_version)
     print(f"[Stealth Engine] launch_stealth_profile called for: {name} (proxy={bool(proxy_str)}, tz={timezone_id}, seed={fingerprint_seed})", flush=True)
 
     safe_name = "".join(c if c.isalnum() else "_" for c in name).lower()
