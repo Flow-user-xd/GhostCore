@@ -1,4 +1,4 @@
-// OmniShield Anti-Detect Engine v3.0 (GoLogin/Multilogin Spec Anti-Fingerprinting)
+// GhostCore Anti-Detect Engine v2.0.0 (GoLogin/Multilogin Spec Anti-Fingerprinting)
 // Covers: Canvas, WebGL parameters & extensions, AudioContext, Media Devices, Font Metrics,
 // Speech Synthesis, Battery API, Screen & Orientation, Navigator Plugins, and WebRTC.
 (function() {
@@ -1382,7 +1382,7 @@
           }).join('\n');
         };
 
-        const WebRTCProxy = function(config, constraints) {
+        let WebRTCProxy = function(config, constraints) {
           const pc = new origRTC(config, constraints);
           const origCreateOffer = pc.createOffer;
           let patchedCreateOffer = async function() {

@@ -1,9 +1,9 @@
 @echo off
-title OmniShield Anti-Detect Studio
+title GhostCore Anti-Detect Studio
 cd /d "%~dp0"
 
 echo ===================================================================
-echo           OmniShield Studio - Anti-Detect Launcher
+echo           GhostCore Studio - Anti-Detect Launcher
 echo ===================================================================
 echo.
 
@@ -15,7 +15,7 @@ echo.
 echo ===================================================================
 echo   [!] Python 3 was not detected in your system PATH.
 echo ===================================================================
-echo OmniShield requires Python 3.10+ to run the anti-detect server.
+echo GhostCore requires Python 3.10+ to run the anti-detect server.
 echo.
 set "INSTALL_PY=Y"
 set /p "INSTALL_PY=Would you like to install Python 3 automatically from CMD? [Y/N] (default: Y): "
@@ -69,7 +69,7 @@ echo.
 echo ===================================================================
 echo   [!] Portable Chromium engine not found in browser_core\
 echo ===================================================================
-echo OmniShield uses Ungoogled Chromium for 100%% stealth profile isolation.
+echo GhostCore uses Ungoogled Chromium for 100%% stealth profile isolation.
 echo.
 set "INSTALL_CR=Y"
 set /p "INSTALL_CR=Would you like to select and install one of the latest 3 Chromium versions? [Y/N] (default: Y): "
@@ -94,20 +94,20 @@ echo.
 :chrome_ready
 echo.
 echo ===================================================================
-echo   Launching OmniShield Studio on http://localhost:3000 ...
+echo   Launching GhostCore Studio on http://localhost:3000 ...
 echo ===================================================================
 echo.
 
 python server.py
 
 echo.
-echo [OmniShield] Server closed.
+echo [GhostCore] Server closed.
 pause
 exit /b 0
 
 :no_python
 echo.
-echo [ERROR] Python 3 is required to run OmniShield Studio.
+echo [ERROR] Python 3 is required to run GhostCore Studio.
 echo Please install Python from https://www.python.org/downloads/
 echo (Make sure to check "Add python.exe to PATH" during install)
 echo.

@@ -36,8 +36,8 @@ for b_path in BROWSER_CANDIDATES:
 if not CHROME_EXEC:
     CHROME_EXEC = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 
-PROFILES_DIR = os.path.join(os.path.expanduser('~'), 'OmniShieldProfiles')
-EXTENSION_TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'omnishield_extension')
+PROFILES_DIR = os.path.join(os.path.expanduser('~'), 'GhostCoreProfiles')
+EXTENSION_TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ghostcore_extension')
 os.makedirs(PROFILES_DIR, exist_ok=True)
 
 
@@ -137,10 +137,10 @@ def resolve_and_unpack_extension(ext_path, user_data_dir):
 
 def prepare_profile_extension(profile_id, user_data_dir, webgl_vendor, webgl_renderer, cpu_cores, memory_gb, timezone_id="", width=1920, height=1080, useragent="", fingerprint_seed=None, locale="", accept_language="", webrtc="Proxy IP"):
     """
-    Create a per-profile copy of the OmniShield extension with unique config.js.
+    Create a per-profile copy of the GhostCore extension with unique config.js.
     Returns the path to the per-profile extension directory.
     """
-    ext_dir = os.path.join(user_data_dir, 'omnishield_ext')
+    ext_dir = os.path.join(user_data_dir, 'ghostcore_ext')
     os.makedirs(ext_dir, exist_ok=True)
 
     # Copy all template files reliably, overwriting existing files
@@ -183,7 +183,7 @@ def prepare_profile_extension(profile_id, user_data_dir, webgl_vendor, webgl_ren
     seeds = compute_profile_fingerprint_seeds(seed_str)
 
     # Generate the per-profile config.js inside an IIFE (zero top-level variable leaks)
-    config_content = f"""// OmniShield Profile Config - Auto-generated for: {profile_id}
+    config_content = f"""// GhostCore Profile Config - Auto-generated for: {profile_id}
 (function() {{
   const cfg = {{
     profileId: {json.dumps(profile_id)},
@@ -1487,18 +1487,17 @@ def sanitize_user_agent(ua, os_hint=""):
     Ensures User-Agent uses modern Chromium/CriOS syntax matching the portable engine.
     """
     if not ua:
-        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
 
-    import re
-    # Upgrade any older Chrome/CriOS versions to match the installed Chromium 150 engine (standard reduced UA format)
-    ua = re.sub(r'Chrome/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'Chrome/150.0.0.0', ua)
-    ua = re.sub(r'CriOS/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'CriOS/150.0.0.0', ua)
+    # Upgrade any older Chrome/CriOS versions to match the installed Chromium 151 engine (standard reduced UA format)
+    ua = re.sub(r'Chrome/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'Chrome/151.0.0.0', ua)
+    ua = re.sub(r'CriOS/(?:12[0-9]|13[0-9]|14[0-9]|15[0-9])\.[\d.]+', 'CriOS/151.0.0.0', ua)
 
     if "Version/" in ua and "Safari/" in ua and "Chrome/" not in ua and "CriOS/" not in ua:
         if "iPhone" in ua or "iPad" in ua or "iOS" in os_hint or "iPhone" in os_hint or "iPad" in os_hint:
-            ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) CriOS/150.0.0.0 Mobile/15E148 Safari/537.36"
+            ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) CriOS/151.0.0.0 Mobile/15E148 Safari/537.36"
         else:
-            ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+            ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
 
     return ua
 

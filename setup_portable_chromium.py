@@ -29,7 +29,7 @@ def fetch_latest_releases(limit=3):
     try:
         req = urllib.request.Request(
             'https://api.github.com/repos/ungoogled-software/ungoogled-chromium-windows/releases?per_page=10',
-            headers={'User-Agent': 'OmniShield-Installer/2.0'}
+            headers={'User-Agent': 'GhostCore-Installer/2.0'}
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode('utf-8'))
@@ -56,7 +56,7 @@ def fetch_latest_releases(limit=3):
 
 def prompt_version_choice(versions):
     print("\n" + "=" * 65)
-    print("   🛡️  OmniShield Studio — Chromium Browser Core Setup")
+    print("   🛡️  GhostCore Studio — Chromium Browser Core Setup")
     print("=" * 65)
     print("Select a portable Ungoogled Chromium version to install:\n")
     for i, v in enumerate(versions, 1):
@@ -191,6 +191,8 @@ def download_and_setup_portable_chromium(force_interactive=False, chosen_version
             if found_dir:
                 shutil.copytree(found_dir, target_dir, dirs_exist_ok=True)
                 shutil.rmtree(extract_tmp, ignore_errors=True)
+                with open(os.path.join(target_dir, 'version.txt'), 'w') as f:
+                    f.write(selected.get('version', '151.0.7922.173'))
                 print(f"[Portable Engine] Portable Chromium successfully installed to:\n  {chrome_exec}")
 
         if os.path.exists(zip_path):

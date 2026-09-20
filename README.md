@@ -1,13 +1,13 @@
-# 🛡️ OmniShield — Next-Gen Virtual Anti-Detect Browser Studio
+# 🛡️ GhostCore — Next-Gen Virtual Anti-Detect Browser Studio
 
-[![Chromium Version](https://img.shields.io/badge/Chromium-150.0.7871.128-blue.svg?style=flat-square&logo=googlechrome)](https://github.com)
+[![Chromium Version](https://img.shields.io/badge/Chromium-151.0.7922.173-blue.svg?style=flat-square&logo=googlechrome)](https://github.com)
 [![Stealth Authenticity](https://img.shields.io/badge/BrowserScan-100%25%20Authentic-brightgreen.svg?style=flat-square)](https://www.browserscan.net)
 [![Bot Detection](https://img.shields.io/badge/Bot%20Detection-0%25%20(Zero%20Flags)-success.svg?style=flat-square)](https://creepjs-api.web.app)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat-square)](https://github.com)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg?style=flat-square)](LICENSE)
 
-**OmniShield** is a state-of-the-art virtual anti-detect browser studio built on portable Ungoogled Chromium. Designed for web scrapers, multi-account operators, automation engineers, and security researchers, OmniShield delivers completely isolated, genuine browser instances that achieve **100% authenticity scores** across commercial detection suites including **BrowserScan**, **BrowserLeaks**, and **CreepJS**.
+**GhostCore** is a state-of-the-art virtual anti-detect browser studio built on portable Ungoogled Chromium. Designed for web scrapers, multi-account operators, automation engineers, and security researchers, GhostCore delivers completely isolated, genuine browser instances that achieve **100% authenticity scores** across commercial detection suites including **BrowserScan**, **BrowserLeaks**, and **CreepJS**.
 
 ---
 
@@ -78,14 +78,14 @@
 
 ## 📊 Live Fingerprint Verification Benchmarks
 
-| Verification Test | Native Browser | OmniShield Profile 1 (Alienware) | OmniShield Profile 2 (MacBook M3) |
+| Verification Test | Native Browser | GhostCore Profile 1 (Alienware) | GhostCore Profile 2 (MacBook M3) |
 | :--- | :--- | :--- | :--- |
 | **BrowserScan Authenticity** | 85% – 90% | **100% (0 Deductions)** | **100% (0 Deductions)** |
 | **BrowserScan Bot Detection** | 0% | **0% (Undetected)** | **0% (Undetected)** |
 | **BrowserLeaks Canvas Hash** | Native | **Unique Cryptographic Hash** | **Unique Cryptographic Hash** |
 | **Canvas Hash Collision** | Native | **0 Collisions** | **0 Collisions** |
 | **AudioContext Oscillator** | Native | **Spoofed & Seeded** | **Spoofed & Seeded** |
-| **Chrome Version Alignment**| System | **Chrome 150.0.7871.128** | **Chrome 150.0.7871.128** |
+| **Chrome Version Alignment**| System | **Chrome 151.0.7922.173** | **Chrome 151.0.7922.173** |
 | **WebRTC IP Leak** | Exposed | **Strictly Shielded** | **Strictly Shielded** |
 
 ---
@@ -94,14 +94,14 @@
 
 ```mermaid
 graph TD
-    UI[OmniShield Studio Dashboard :3000] -->|HTTP / REST API| Server[server.py HTTP Supervisor]
+    UI[GhostCore Studio Dashboard :3000] -->|HTTP / REST API| Server[server.py HTTP Supervisor]
     Server --> Profiles[Profile Storage - profiles.json]
     Server --> Proxies[Proxy Pools - proxies.json]
     Server --> SQLite[Chromium SQLite Cookie Engine]
     Server --> Launcher[stealth_engine.py]
     Launcher --> CDP[CDP Port Allocation 9200-9500]
     Launcher --> Core[browser_core/chrome.exe]
-    Core --> Ext[omnishield_extension/]
+    Core --> Ext[ghostcore_extension/]
     Ext --> Inject[inject.js - World MAIN Prototype Hooks]
     Ext --> BG[background.js - Client Hints & Search Resolver]
     Server --> AutoLaunch[Auto-Browser Launch on Port Bind]
@@ -116,7 +116,7 @@ Simply double-click **`start.bat`** in the repository root:
 1. Verifies Python 3 installation (prompts to auto-install via CMD if missing).
 2. Verifies Python dependencies from `requirements.txt`.
 3. If Chromium is not found, prompts you to select and install any of the latest 3 versions.
-4. Automatically launches OmniShield Studio on `http://localhost:3000`.
+4. Automatically launches GhostCore Studio on `http://localhost:3000`.
 
 ---
 
@@ -124,8 +124,8 @@ Simply double-click **`start.bat`** in the repository root:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Flow-user-xd/OmniShield-Browser.git
-cd OmniShield-Browser
+git clone https://github.com/Flow-user-xd/GhostCore-Browser.git
+cd GhostCore-Browser
 
 # 2. Install Python dependencies
 pip install -r requirements.txt
@@ -133,7 +133,7 @@ pip install -r requirements.txt
 # 3. Download portable Chromium (interactive version picker)
 python setup_portable_chromium.py --interactive
 
-# 4. Start the OmniShield Engine
+# 4. Start the GhostCore Engine
 python server.py
 ```
 Then navigate to `http://localhost:3000` in your web browser.
@@ -151,8 +151,8 @@ Profiles are stored in `profiles.json` and can be customized via the web UI or J
   "tags": ["Windows 11", "RTX 4090", "Stealth"],
   "status": "stopped",
   "os": "Windows 11",
-  "browser": "Chrome 150",
-  "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36",
+  "browser": "Chrome 151",
+  "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.173 Safari/537.36",
   "resolution": { "width": 1920, "height": 1080, "dpr": 1 },
   "hardware": {
     "cpuCores": 16,
@@ -180,7 +180,7 @@ Profiles are stored in `profiles.json` and can be customized via the web UI or J
 ---
 
 ## 🔒 Security & Local Privacy Guarantee
-OmniShield is built for legitimate multi-account management, QA testing, penetration testing, and privacy research. It runs **100% locally on your machine with zero cloud dependencies, zero telemetry, and zero tracking**.
+GhostCore is built for legitimate multi-account management, QA testing, penetration testing, and privacy research. It runs **100% locally on your machine with zero cloud dependencies, zero telemetry, and zero tracking**.
 
 ---
 

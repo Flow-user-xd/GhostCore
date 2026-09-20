@@ -1,4 +1,4 @@
-// OmniShield 50 Authentic Real Desktop & Laptop Specifications Catalog
+// GhostCore 50 Authentic Real Desktop & Laptop Specifications Catalog
 // Streamlined for 100% Anti-Detection Stealth (Windows 11/10, macOS, Linux Desktop)
 // ALL mobile phones, tablets, and mobile OS entries have been completely removed.
 

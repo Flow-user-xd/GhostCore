@@ -13,13 +13,18 @@ env/
 # Scratch & test artifacts
 scratch/
 temp_*
-omnishield.log
+ghostcore.log
 *.log
 *.bak
 
 # Profiles data (sessions, cookies, cache)
 profiles/
 profiles_data/
+profiles.json
+proxies.json
+*.json.bak
+chromium_portable.zip
+
 
 # Dependencies & Build artifacts
 node_modules/

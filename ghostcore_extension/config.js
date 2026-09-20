@@ -1,4 +1,4 @@
-// OmniShield Profile Config - Base Template
+// GhostCore Profile Config - Base Template
 (function() {
   const cfg = {
     profileId: 'default-profile',

@@ -1,5 +1,5 @@
 /**
- * OmniShield Interactive Cursor Companion: White Rabbit Runner
+ * GhostCore Interactive Cursor Companion: White Rabbit Runner
  * - Perfectly compact (~32px width)
  * - Trails comfortably 50px away from the cursor pointer so it never covers buttons or text
  * - Real bounding forward leap: airborne parabolic flight arc, mid-air surge, landing squash & dust
@@ -331,7 +331,7 @@
         currentMode = resolved;
         localStorage.setItem('omni_rabbit_mode_v6', resolved);
         updateBadgeText();
-        console.log(`[OmniShield] Rabbit speed set to: ${SPEED_PRESETS[resolved].label}`);
+        console.log(`[GhostCore] Rabbit speed set to: ${SPEED_PRESETS[resolved].label}`);
       }
     };
 
@@ -540,7 +540,7 @@
     }
 
     animId = requestAnimationFrame(loop);
-    console.log('%c[OmniShield] 🐰 Rabbit Companion v28.0 (3x Speed Real Leaping Physics Active)', 'color: #00f2fe; font-weight: bold;');
+    console.log('%c[GhostCore] 🐰 Rabbit Companion v28.0 (3x Speed Real Leaping Physics Active)', 'color: #00f2fe; font-weight: bold;');
   }
 
   if (document.readyState === 'loading') {

@@ -1,5 +1,7 @@
 import os
 import sys
+import sqlite3
+import shutil
 import json
 import time
 import socket
@@ -13,8 +15,8 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
 # Rotating Logger configuration
-LOG_FILE = os.path.join(os.path.dirname(__file__), 'omnishield.log')
-logger = logging.getLogger("OmniShield")
+LOG_FILE = os.path.join(os.path.dirname(__file__), 'ghostcore.log')
+logger = logging.getLogger("GhostCore")
 logger.setLevel(logging.INFO)
 
 if not logger.handlers:
@@ -27,9 +29,10 @@ if not logger.handlers:
 
 # Path configuration
 PORT = 3000
+VERSION = "2.0.0"
 PROFILES_FILE = os.path.join(os.path.dirname(__file__), 'profiles.json')
 PROXIES_FILE = os.path.join(os.path.dirname(__file__), 'proxies.json')
-PROFILES_BASE_DIR = os.path.join(os.path.expanduser('~'), 'OmniShieldProfiles')
+PROFILES_BASE_DIR = os.path.join(os.path.expanduser('~'), 'GhostCoreProfiles')
 
 PORTABLE_CHROMIUM = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'browser_core', 'chrome.exe')
 
@@ -131,8 +134,8 @@ DEFAULT_PROFILES = [
         "tags": ["Windows 11", "RTX 4090", "Stealth"],
         "status": "stopped",
         "os": "Windows 11",
-        "browser": "Chrome 150",
-        "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36",
+        "browser": "Chrome 151",
+        "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.173 Safari/537.36",
         "resolution": { "width": 1920, "height": 1080, "dpr": 1 },
         "hardware": { "cpuCores": 16, "memoryGb": 64, "webGlVendor": "Google Inc. (NVIDIA)", "webGlRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 Direct3D11 vs_5_0 ps_5_0)", "canvasNoise": "Noise" },
         "proxy": { "enabled": False, "type": "SOCKS5", "ip": "", "port": "", "location": "Direct Network (India)", "timezone": "Asia/Kolkata", "webrtc": "Proxy IP" },
@@ -145,8 +148,8 @@ DEFAULT_PROFILES = [
         "tags": ["Windows 11", "RTX 4070", "Primary"],
         "status": "stopped",
         "os": "Windows 11",
-        "browser": "Chrome 150",
-        "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36",
+        "browser": "Chrome 151",
+        "useragent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.173 Safari/537.36",
         "resolution": { "width": 1920, "height": 1080, "dpr": 1 },
         "hardware": { "cpuCores": 14, "memoryGb": 32, "webGlVendor": "Google Inc. (NVIDIA)", "webGlRenderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Direct3D11 vs_5_0 ps_5_0)", "canvasNoise": "Noise" },
         "proxy": { "enabled": False, "type": "SOCKS5", "ip": "", "port": "", "location": "Direct Network (India)", "timezone": "Asia/Kolkata", "webrtc": "Proxy IP" },
@@ -159,27 +162,14 @@ DEFAULT_PROFILES = [
         "tags": ["macOS", "M3 Max", "Clean"],
         "status": "stopped",
         "os": "macOS Sonoma",
-        "browser": "Chrome 150",
-        "useragent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36",
+        "browser": "Chrome 151",
+        "useragent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.7922.173 Safari/537.36",
         "resolution": { "width": 2560, "height": 1440, "dpr": 2 },
         "hardware": { "cpuCores": 16, "memoryGb": 64, "webGlVendor": "Apple Inc.", "webGlRenderer": "Apple M3 Max", "canvasNoise": "Noise" },
         "proxy": { "enabled": False, "type": "SOCKS5", "ip": "", "port": "", "location": "Direct Network (India)", "timezone": "Asia/Kolkata", "webrtc": "Proxy IP" },
         "storage": { "cookiesCount": 0, "hasSession": False }
     }
 ]
-
-PROXIES_FILE = os.path.join(os.path.dirname(__file__), 'proxies.json')
-
-def is_port_open(port):
-    import socket
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.4)
-        res = s.connect_ex(('127.0.0.1', int(port)))
-        s.close()
-        return res == 0
-    except Exception:
-        return False
 
 def load_profiles():
     if os.path.exists(PROFILES_FILE):
@@ -198,9 +188,6 @@ def load_profiles():
                 except Exception as be:
                     logger.error(f"Failed to load backup {bak_file}: {be}")
     return DEFAULT_PROFILES
-
-import urllib.request
-
 proxy_health_cache = {}  # proxy_id -> { online: bool, latency: int, lastChecked: timestamp, location: str, timezone: str }
 geo_cache = {}           # ip_address -> geolocation dict
 
@@ -257,7 +244,7 @@ def resolve_ip_geolocation(ip_address):
     # Tier 1: ipwho.is (Highest accuracy for datacenter & cloud IP reassignments, returns country, city, flag emoji & timezone)
     try:
         url = f"https://ipwho.is/{ip_clean}"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) OmniShield/1.0'})
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) GhostCore/1.0'})
         with urllib.request.urlopen(req, timeout=3.5) as response:
             data = json.loads(response.read().decode('utf-8'))
             if data.get('success'):
@@ -322,7 +309,7 @@ def resolve_ip_geolocation(ip_address):
     # Tier 3: ip-api.com
     try:
         url = f"http://ip-api.com/json/{ip_clean}?fields=status,country,countryCode,city,timezone,lat,lon,query"
-        req = urllib.request.Request(url, headers={'User-Agent': 'OmniShield-GeoLookup/1.0'})
+        req = urllib.request.Request(url, headers={'User-Agent': 'GhostCore-GeoLookup/1.0'})
         with urllib.request.urlopen(req, timeout=3.5) as response:
             data = json.loads(response.read().decode('utf-8'))
             if data.get('status') == 'success':
@@ -486,81 +473,83 @@ def import_profile_cookies(profile_id, cookie_input):
     now_unix = time.time()
     now_chrome = int((now_unix + 11644473600) * 1000000)
 
-    import sqlite3
-    conn = sqlite3.connect(db_path, timeout=5.0)
     try:
-        cur = conn.cursor()
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS cookies(
-                creation_utc INTEGER NOT NULL,
-                host_key TEXT NOT NULL,
-                top_frame_site_key TEXT NOT NULL DEFAULT '',
-                name TEXT NOT NULL,
-                value TEXT NOT NULL,
-                encrypted_value BLOB NOT NULL DEFAULT '',
-                path TEXT NOT NULL DEFAULT '/',
-                expires_utc INTEGER NOT NULL DEFAULT 0,
-                is_secure INTEGER NOT NULL DEFAULT 0,
-                is_httponly INTEGER NOT NULL DEFAULT 0,
-                last_access_utc INTEGER NOT NULL DEFAULT 0,
-                has_expires INTEGER NOT NULL DEFAULT 1,
-                is_persistent INTEGER NOT NULL DEFAULT 1,
-                priority INTEGER NOT NULL DEFAULT 1,
-                samesite INTEGER NOT NULL DEFAULT -1,
-                source_scheme INTEGER NOT NULL DEFAULT 2,
-                source_port INTEGER NOT NULL DEFAULT 443,
-                is_same_party INTEGER NOT NULL DEFAULT 0,
-                last_update_utc INTEGER NOT NULL DEFAULT 0,
-                source_type INTEGER NOT NULL DEFAULT 0
-            )
-        ''')
+        conn = sqlite3.connect(db_path, timeout=5.0)
+        try:
+            cur = conn.cursor()
+            cur.execute('''
+                CREATE TABLE IF NOT EXISTS cookies(
+                    creation_utc INTEGER NOT NULL,
+                    host_key TEXT NOT NULL,
+                    top_frame_site_key TEXT NOT NULL DEFAULT '',
+                    name TEXT NOT NULL,
+                    value TEXT NOT NULL,
+                    encrypted_value BLOB NOT NULL DEFAULT '',
+                    path TEXT NOT NULL DEFAULT '/',
+                    expires_utc INTEGER NOT NULL DEFAULT 0,
+                    is_secure INTEGER NOT NULL DEFAULT 0,
+                    is_httponly INTEGER NOT NULL DEFAULT 0,
+                    last_access_utc INTEGER NOT NULL DEFAULT 0,
+                    has_expires INTEGER NOT NULL DEFAULT 1,
+                    is_persistent INTEGER NOT NULL DEFAULT 1,
+                    priority INTEGER NOT NULL DEFAULT 1,
+                    samesite INTEGER NOT NULL DEFAULT -1,
+                    source_scheme INTEGER NOT NULL DEFAULT 2,
+                    source_port INTEGER NOT NULL DEFAULT 443,
+                    is_same_party INTEGER NOT NULL DEFAULT 0,
+                    last_update_utc INTEGER NOT NULL DEFAULT 0,
+                    source_type INTEGER NOT NULL DEFAULT 0
+                )
+            ''')
 
-        cur.execute("PRAGMA table_info(cookies)")
-        existing_cols = set(r[1] for r in cur.fetchall())
+            cur.execute("PRAGMA table_info(cookies)")
+            existing_cols = set(r[1] for r in cur.fetchall())
 
-        count = 0
-        for c in parsed:
-            name = c.get('name') or c.get('Name') or ''
-            val = c.get('value') or c.get('Value') or ''
-            dom = c.get('domain') or c.get('Domain') or c.get('host') or ''
-            path = c.get('path') or c.get('Path') or '/'
-            sec = 1 if c.get('secure') or c.get('is_secure') else 0
-            httponly = 1 if c.get('httpOnly') or c.get('is_httponly') else 0
-            exp = c.get('expirationDate') or c.get('expires') or 0
-            exp_chrome = int((float(exp) + 11644473600) * 1000000) if exp and float(exp) > 0 else 0
+            count = 0
+            for c in parsed:
+                name = c.get('name') or c.get('Name') or ''
+                val = c.get('value') or c.get('Value') or ''
+                dom = c.get('domain') or c.get('Domain') or c.get('host') or ''
+                path = c.get('path') or c.get('Path') or '/'
+                sec = 1 if c.get('secure') or c.get('is_secure') else 0
+                httponly = 1 if c.get('httpOnly') or c.get('is_httponly') else 0
+                exp = c.get('expirationDate') or c.get('expires') or 0
+                exp_chrome = int((float(exp) + 11644473600) * 1000000) if exp and float(exp) > 0 else 0
 
-            if name and dom:
-                col_map = {
-                    'creation_utc': now_chrome,
-                    'host_key': dom,
-                    'top_frame_site_key': '',
-                    'name': name,
-                    'value': val,
-                    'encrypted_value': b'',
-                    'path': path,
-                    'expires_utc': exp_chrome,
-                    'is_secure': sec,
-                    'is_httponly': httponly,
-                    'last_access_utc': now_chrome,
-                    'has_expires': 1 if exp_chrome > 0 else 0,
-                    'is_persistent': 1,
-                    'priority': 1,
-                    'samesite': -1,
-                    'source_scheme': 2,
-                    'source_port': 443,
-                    'last_update_utc': now_chrome,
-                    'source_type': 0,
-                    'has_cross_site_ancestor': 0
-                }
-                cols_to_insert = [k for k in col_map if k in existing_cols]
-                placeholders = ', '.join(['?'] * len(cols_to_insert))
-                sql = f"INSERT INTO cookies ({', '.join(cols_to_insert)}) VALUES ({placeholders})"
-                cur.execute(sql, [col_map[k] for k in cols_to_insert])
-                count += 1
+                if name and dom:
+                    col_map = {
+                        'creation_utc': now_chrome,
+                        'host_key': dom,
+                        'top_frame_site_key': '',
+                        'name': name,
+                        'value': val,
+                        'encrypted_value': b'',
+                        'path': path,
+                        'expires_utc': exp_chrome,
+                        'is_secure': sec,
+                        'is_httponly': httponly,
+                        'last_access_utc': now_chrome,
+                        'has_expires': 1 if exp_chrome > 0 else 0,
+                        'is_persistent': 1,
+                        'priority': 1,
+                        'samesite': -1,
+                        'source_scheme': 2,
+                        'source_port': 443,
+                        'last_update_utc': now_chrome,
+                        'source_type': 0,
+                        'has_cross_site_ancestor': 0
+                    }
+                    cols_to_insert = [k for k in col_map if k in existing_cols]
+                    placeholders = ', '.join(['?'] * len(cols_to_insert))
+                    sql = f"INSERT INTO cookies ({', '.join(cols_to_insert)}) VALUES ({placeholders})"
+                    cur.execute(sql, [col_map[k] for k in cols_to_insert])
+                    count += 1
 
-        conn.commit()
-    finally:
-        conn.close()
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception:
+        pass
 
     try:
         profs = load_profiles()
@@ -580,7 +569,6 @@ def export_profile_cookies(profile_id):
     if not db_path or not os.path.exists(db_path):
         return []
     try:
-        import sqlite3
         conn = sqlite3.connect(db_path, timeout=5.0)
         try:
             cur = conn.cursor()
@@ -609,7 +597,6 @@ def clear_profile_cookies(profile_id):
     db_path = get_profile_cookies_db(profile_id)
     if db_path and os.path.exists(db_path):
         try:
-            import sqlite3
             conn = sqlite3.connect(db_path, timeout=5.0)
             try:
                 cur = conn.cursor()
@@ -797,7 +784,7 @@ def _proxy_health_check_loop():
 health_thread = threading.Thread(target=_proxy_health_check_loop, daemon=True)
 health_thread.start()
 
-class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
+class GhostCoreRequestHandler(SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
@@ -833,6 +820,18 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 else:
                     p['status'] = 'stopped'
             
+            import platform
+            host_os = f"{platform.system()} {platform.release()}"
+            
+            host_chrome_version = "151.0.7922.173"
+            version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'browser_core', 'version.txt')
+            if os.path.exists(version_file):
+                try:
+                    with open(version_file, 'r') as f:
+                        host_chrome_version = f.read().strip()
+                except:
+                    pass
+
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
@@ -840,12 +839,13 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 "profiles": profiles,
                 "chromePath": CHROME_EXEC,
                 "profilesDir": PROFILES_BASE_DIR,
-                "chromeAvailable": CHROME_EXEC is not None
+                "chromeAvailable": CHROME_EXEC is not None,
+                "hostOS": host_os,
+                "hostChromeVersion": host_chrome_version
             }).encode('utf-8'))
             return
 
         elif parsed.path == '/api/profile/prepare-cli':
-            from urllib.parse import parse_qs
             qs = parse_qs(parsed.query)
             prof_id = qs.get('id', [''])[0]
             profiles = load_profiles()
@@ -873,7 +873,7 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                     width=prof.get('resolution', {}).get('width', 1920),
                     height=prof.get('resolution', {}).get('height', 1080),
                     useragent=prof.get('useragent', ''),
-                    fingerprint_seed=prof.get('fingerprintSeed') or prof.get('canvasSeed') or prof_id,
+                    fingerprint_seed=f"{prof.get('fingerprintSeed') or prof.get('canvasSeed') or prof_id}_{int(time.time())}",
                     locale=px_locale,
                     accept_language=px_accept_lang,
                     webrtc=px_webrtc
@@ -906,7 +906,7 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 lang_flag = f'--lang={px_locale} ' if px_locale else ""
                 target_start_url = prof.get("startUrl") or "about:blank"
 
-                bat_content = f'@echo off\r\ntitle OmniShield - {prof.get("name")}\r\necho Starting OmniShield Profile: {prof.get("name")}...\r\n{tz_env_line}start "" "{CHROME_EXEC}" --user-data-dir="{user_data_dir}" --remote-debugging-port=9222 --remote-allow-origins=* --load-extension="{ext_list_str}" --extension-mime-request-handling=always-prompt-for-install --enable-extensions --silent-debugger-extension-api --window-size={w_val},{h_val} --user-agent="{ua_val}" {lang_flag}{px_flag} --no-first-run --no-default-browser-check {target_start_url}\r\n'
+                bat_content = f'@echo off\r\ntitle GhostCore - {prof.get("name")}\r\necho Starting GhostCore Profile: {prof.get("name")}...\r\n{tz_env_line}start "" "{CHROME_EXEC}" --user-data-dir="{user_data_dir}" --remote-debugging-port=9222 --remote-allow-origins=* --load-extension="{ext_list_str}" --extension-mime-request-handling=always-prompt-for-install --enable-extensions --silent-debugger-extension-api --window-size={w_val},{h_val} --user-agent="{ua_val}" {lang_flag}{px_flag} --no-first-run --no-default-browser-check {target_start_url}\r\n'
                 try:
                     with open(bat_path, 'w', encoding='utf-8') as bf:
                         bf.write(bat_content)
@@ -926,11 +926,12 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 return
             else:
                 self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
                 self.end_headers()
+                self.wfile.write(json.dumps({"error": "Profile not found"}).encode('utf-8'))
                 return
 
         elif parsed.path == '/api/profile/download-launcher':
-            from urllib.parse import parse_qs
             qs = parse_qs(parsed.query)
             prof_id = qs.get('id', [''])[0]
             profiles = load_profiles()
@@ -951,7 +952,7 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                             pass
                 else:
                     target_start_url = prof.get("startUrl") or "about:blank"
-                    bat_content = f'@echo off\r\ntitle OmniShield - {prof.get("name")}\r\necho Starting OmniShield Profile...\r\nstart "" "{CHROME_EXEC}" --user-data-dir="{user_data_dir}" --no-first-run {target_start_url}\r\n'
+                    bat_content = f'@echo off\r\ntitle GhostCore - {prof.get("name")}\r\necho Starting GhostCore Profile...\r\nstart "" "{CHROME_EXEC}" --user-data-dir="{user_data_dir}" --no-first-run {target_start_url}\r\n'
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/x-bat')
@@ -961,11 +962,12 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 return
             else:
                 self.send_response(404)
+                self.send_header('Content-Type', 'text/plain')
                 self.end_headers()
+                self.wfile.write(b"Profile not found")
                 return
 
         elif parsed.path == '/api/profile/resolve-proxy-geo':
-            from urllib.parse import parse_qs
             qs = parse_qs(parsed.query)
             ip = qs.get('ip', [''])[0].strip()
             geo = resolve_ip_geolocation(ip)
@@ -1012,7 +1014,6 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
             return
 
         elif parsed.path == '/api/profiles/cookies/export':
-            from urllib.parse import parse_qs
             qs = parse_qs(parsed.query)
             profile_id = qs.get('id', [''])[0]
             cookies = export_profile_cookies(profile_id)
@@ -1033,7 +1034,6 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
             return
 
         elif parsed.path == '/api/system/chromium-versions':
-            from setup_portable_chromium import fetch_latest_releases
             versions = fetch_latest_releases(3)
             current_chrome = get_chrome_executable()
             self.send_response(200)
@@ -1093,7 +1093,6 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
 
             def run_installer():
                 global chromium_install_state, CHROME_EXEC
-                from setup_portable_chromium import download_and_setup_portable_chromium
                 def cb(info):
                     chromium_install_state.update(info)
                 try:
@@ -1180,7 +1179,6 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 return
 
         elif parsed.path == '/api/profiles/cookies/import':
-            import sqlite3
             profile_id = payload.get('id')
             raw_cookies = payload.get('cookies')
             try:
@@ -1233,7 +1231,9 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
             if not profile:
                 logger.error(f"Launch requested for non-existent profile ID: {profile_id}")
                 self.send_response(404)
+                self.send_header('Content-Type', 'application/json')
                 self.end_headers()
+                self.wfile.write(json.dumps({"error": "Profile not found"}).encode('utf-8'))
                 return
 
             CHROME_EXEC = get_chrome_executable()
@@ -1313,8 +1313,6 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                 # Direct network: do NOT override timezone — preserve native system timezone
                 proxy_tz = ""
 
-            from stealth_engine import launch_stealth_profile
-
             def _launch_wrapper():
                 try:
                     launch_url = profile.get('startUrl') or "about:blank"
@@ -1324,7 +1322,7 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
                         webgl_vendor, webgl_renderer, cpu_cores, memory_gb,
                         proxy_user, proxy_pass, proxy_tz,
                         custom_extensions=profile.get('customExtensions') or [],
-                        fingerprint_seed=profile.get('fingerprintSeed') or profile.get('canvasSeed') or profile_id,
+                        fingerprint_seed=f"{profile.get('fingerprintSeed') or profile.get('canvasSeed') or profile_id}_{int(time.time())}",
                         locale=proxy_locale,
                         accept_language=proxy_accept_lang,
                         webrtc=webrtc_mode
@@ -1446,7 +1444,9 @@ class OmniShieldRequestHandler(SimpleHTTPRequestHandler):
             return
 
         self.send_response(404)
+        self.send_header('Content-Type', 'application/json')
         self.end_headers()
+        self.wfile.write(json.dumps({"error": "Not Found"}).encode('utf-8'))
 
 def reconcile_running_processes():
     """Scans active CDP ports and SingletonLock files on server startup to rebuild running_processes."""
@@ -1504,17 +1504,17 @@ def clear_port_3000_conflicts():
 if __name__ == '__main__':
     clear_port_3000_conflicts()
     reconcile_running_processes()
-    logger.info(f"[OmniShield Engine] Starting server on http://localhost:{PORT}")
-    logger.info(f"[OmniShield Engine] Detected Chrome Executable: {CHROME_EXEC}")
-    logger.info(f"[OmniShield Engine] Profiles Storage Directory: {PROFILES_BASE_DIR}")
+    logger.info(f"[GhostCore Engine] Starting server on http://localhost:{PORT}")
+    logger.info(f"[GhostCore Engine] Detected Chrome Executable: {CHROME_EXEC}")
+    logger.info(f"[GhostCore Engine] Profiles Storage Directory: {PROFILES_BASE_DIR}")
     try:
         try:
-            server = ThreadingHTTPServer(('0.0.0.0', PORT), OmniShieldRequestHandler)
+            server = ThreadingHTTPServer(('0.0.0.0', PORT), GhostCoreRequestHandler)
         except OSError:
-            logger.info("[OmniShield Engine] Port 3000 busy, clearing conflicts and retrying...")
+            logger.info("[GhostCore Engine] Port 3000 busy, clearing conflicts and retrying...")
             clear_port_3000_conflicts()
             time.sleep(1.0)
-            server = ThreadingHTTPServer(('0.0.0.0', PORT), OmniShieldRequestHandler)
+            server = ThreadingHTTPServer(('0.0.0.0', PORT), GhostCoreRequestHandler)
 
         if '--no-browser' not in sys.argv:
             def _auto_open_dashboard():

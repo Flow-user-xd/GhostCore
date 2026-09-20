@@ -1,5 +1,5 @@
 """
-OmniShield Proxy Bridge — Local HTTP CONNECT Proxy
+GhostCore Proxy Bridge — Local HTTP CONNECT Proxy
 ====================================================
 Chrome connects here as a plain HTTP proxy (127.0.0.1:LOCAL_PORT).
 This bridge relays traffic through the remote SOCKS5/HTTP proxy,

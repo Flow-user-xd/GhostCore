@@ -1,4 +1,4 @@
-// OmniShield Interactive Tactical Dot Matrix Background
+// GhostCore Interactive Tactical Dot Matrix Background
 // Option 3 with cursor physics, elastic spring repulsion, and glowing laser filaments
 (function() {
   if (document.getElementById('bg-matrix-canvas')) return;
@@ -136,7 +136,10 @@
     mouse.y = e.clientY;
     mouse.active = true;
     lastMoveTime = Date.now();
-    isMoving = true;
+    if (!isMoving) {
+      isMoving = true;
+      requestAnimationFrame(renderFrame);
+    }
   });
 
   window.addEventListener('mouseleave', () => {
@@ -177,8 +180,11 @@
       isMoving = false;
     }
 
-    requestAnimationFrame(renderFrame);
+    if (isMoving) {
+      requestAnimationFrame(renderFrame);
+    }
   }
 
+  isMoving = true;
   requestAnimationFrame(renderFrame);
 })();

@@ -1,8 +1,8 @@
-// OmniShield Anti-Detect Service Worker - DeclarativeNetRequest Network Header Modification
+// GhostCore Anti-Detect Service Worker - DeclarativeNetRequest Network Header Modification
 try {
   importScripts('config.js');
 } catch (e) {
-  console.error('[OmniShield Service Worker] Failed to import config.js:', e);
+  console.error('[GhostCore Service Worker] Failed to import config.js:', e);
 }
 
 const cfg = self.__OMNI_CONFIG || {};
@@ -77,7 +77,7 @@ function updateRules() {
   try {
     chrome.declarativeNetRequest.getDynamicRules(oldRules => {
       if (chrome.runtime.lastError) {
-        console.warn('[OmniShield SW] getDynamicRules:', chrome.runtime.lastError.message);
+        console.warn('[GhostCore SW] getDynamicRules:', chrome.runtime.lastError.message);
         return;
       }
       const oldIds = (oldRules || []).map(r => r.id);
@@ -86,12 +86,12 @@ function updateRules() {
         addRules: headerRules
       }, () => {
         if (chrome.runtime.lastError) {
-          console.warn('[OmniShield SW] updateDynamicRules:', chrome.runtime.lastError.message);
+          console.warn('[GhostCore SW] updateDynamicRules:', chrome.runtime.lastError.message);
         }
       });
     });
   } catch (err) {
-    console.warn('[OmniShield SW] Failed to update dynamic rules:', err);
+    console.warn('[GhostCore SW] Failed to update dynamic rules:', err);
   }
 }
 
@@ -99,7 +99,7 @@ chrome.runtime.onInstalled.addListener(updateRules);
 updateRules();
 
 // =========================================================================
-// OmniShield Smart Omnibox Search Engine Resolver
+// GhostCore Smart Omnibox Search Engine Resolver
 // =========================================================================
 // In Ungoogled Chromium, address bar search queries without a scheme default
 // to 'http://{searchTerms}/', causing queries to fail with DNS errors.
@@ -199,7 +199,7 @@ if (chrome.webNavigation && chrome.webNavigation.onBeforeNavigate) {
           const contParsed = new URL(continueUrl);
           const query = contParsed.searchParams.get('q');
           if (query) {
-            console.log('[OmniShield] Google flagged IP with CAPTCHA block, auto-recovering to DuckDuckGo:', query);
+            console.log('[GhostCore] Google flagged IP with CAPTCHA block, auto-recovering to DuckDuckGo:', query);
             chrome.tabs.update(details.tabId, { url: `https://duckduckgo.com/?q=${encodeURIComponent(query)}` });
             return;
           }
@@ -210,7 +210,7 @@ if (chrome.webNavigation && chrome.webNavigation.onBeforeNavigate) {
     // 2. Natural Omnibox Search Queries:
     const { isSearch, query } = isOmniboxSearchQuery(details.url);
     if (isSearch && query) {
-      console.log('[OmniShield] Seamlessly resolving search query:', query);
+      console.log('[GhostCore] Seamlessly resolving search query:', query);
       const targetUrl = getSearchEngineUrl(query);
       chrome.tabs.update(details.tabId, { url: targetUrl });
     }
@@ -223,7 +223,7 @@ if (chrome.webNavigation && chrome.webNavigation.onBeforeNavigate) {
         const raw = details.url.replace(/^http:\/\//, '').replace(/\/$/, '');
         const query = decodeURIComponent(raw).trim();
         if (query && query !== 'localhost' && query !== '127.0.0.1' && !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(query)) {
-          console.log('[OmniShield] DNS resolution fallback to Search:', query);
+          console.log('[GhostCore] DNS resolution fallback to Search:', query);
           const targetUrl = getSearchEngineUrl(query);
           chrome.tabs.update(details.tabId, { url: targetUrl });
         }

@@ -1,4 +1,4 @@
-// OmniShield Browser Studio Engine with Real Chrome Window Launcher API Integration
+// GhostCore Browser Studio Engine with Real Chrome Window Launcher API Integration
 (function() {
   
   let state = {
@@ -25,7 +25,7 @@
     proxyFilterStatus: 'all',
     proxyFilterProtocol: 'all'
   };
-  window.__OMNISHIELD_STATE__ = state;
+  window.__GHOSTCORE_STATE__ = state;
 
   async function openChromiumInstallerModal() {
     state.chromiumInstallerOpen = true;
@@ -52,6 +52,8 @@
       state.chromePath = data.chromePath || '';
       state.profilesDir = data.profilesDir || '';
       state.chromeAvailable = data.chromeAvailable;
+      state.hostOS = data.hostOS || 'Windows 11';
+      state.hostChromeVersion = data.hostChromeVersion || '151.0.7922.173';
 
       try {
         const pxRes = await fetch('/api/proxies');
@@ -73,7 +75,7 @@
       });
       render();
     } catch (err) {
-      console.error("Error connecting to OmniShield Backend API:", err);
+      console.error("Error connecting to GhostCore Backend API:", err);
     }
   }
 
@@ -199,7 +201,7 @@
 
   // Render Engine with Input Focus & Cursor Selection Preservation
   function render() {
-    window.__OMNISHIELD_RENDER__ = render;
+    window.__GHOSTCORE_RENDER__ = render;
     const activeEl = document.activeElement;
     let activeId = activeEl ? activeEl.id : null;
     let selStart = (activeEl && typeof activeEl.selectionStart === 'number') ? activeEl.selectionStart : null;
@@ -246,7 +248,7 @@
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
             </div>
             <div>
-              <h1 style="font-size: 1.1rem; font-weight: 800;" class="gradient-text">OmniShield</h1>
+              <h1 style="font-size: 1.1rem; font-weight: 800;" class="gradient-text">GhostCore</h1>
               <span style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 700;">Anti-Detect Studio</span>
             </div>
           </div>
@@ -761,9 +763,9 @@
       id: `prof-${Date.now()}`,
       name: 'New Custom Profile',
       tags: ['Custom', 'Chrome'],
-      os: 'Windows 11',
-      browser: 'Chrome 150',
-      useragent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36',
+      os: state.hostOS || 'Windows 11',
+      browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
+      useragent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`,
       resolution: { width: 1920, height: 1080, dpr: 1 },
       hardware: { cpuCores: 8, memoryGb: 16, webGlVendor: 'Google Inc. (NVIDIA)', webGlRenderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0)', canvasNoise: 'Noise' },
       proxy: { enabled: false, type: 'SOCKS5', ip: '', port: '', username: '', password: '', location: 'Direct Network', timezone: 'Asia/Kolkata' },
@@ -1037,7 +1039,7 @@
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 620px;">📦 ${ext}</span>
                     <button type="button" class="btn-remove-ext" data-idx="${idx}" style="background: none; border: none; color: #ff5f56; cursor: pointer; font-size: 0.9rem;">✕</button>
                   </div>
-                `)).join('') || '<span style="font-size: 0.75rem; color: var(--text-dim);">No custom extensions added yet. OmniShield Anti-Detect core engine is always loaded by default.</span>'}
+                `)).join('') || '<span style="font-size: 0.75rem; color: var(--text-dim);">No custom extensions added yet. GhostCore Anti-Detect core engine is always loaded by default.</span>'}
               </div>
             </div>
 
@@ -1103,10 +1105,10 @@
     } catch(e) {}
 
     const safeName = (prof.name || 'profile').toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const baseDir = state.profilesDir || 'C:\\Users\\MASTER\\OmniShieldProfiles';
+    const baseDir = state.profilesDir || 'C:\\Users\\MASTER\\GhostCoreProfiles';
     const userDataDir = `${baseDir}\\${prof.id}_${safeName}`;
-    const extDir = `${userDataDir}\\omnishield_ext`;
-    const chromePath = state.chromePath || 'c:\\Users\\MASTER\\Downloads\\OmniShield\\browser_core\\chrome.exe';
+    const extDir = `${userDataDir}\\ghostcore_ext`;
+    const chromePath = state.chromePath || 'c:\\Users\\MASTER\\Downloads\\GhostCore\\browser_core\\chrome.exe';
 
     const hasProxy = prof.proxy && prof.proxy.enabled && prof.proxy.ip;
     let proxyFlag = '--no-proxy-server';
@@ -1118,7 +1120,7 @@
 
     const w = prof.resolution?.width || 1920;
     const h = prof.resolution?.height || 1080;
-    const ua = prof.useragent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36';
+    const ua = prof.useragent || `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`;
 
     const commonFlags = `--user-data-dir="${userDataDir}" --remote-debugging-port=9222 --remote-allow-origins=* --load-extension="${extDir}" --extension-mime-request-handling=always-prompt-for-install --enable-extensions --silent-debugger-extension-api --window-size=${w},${h} --user-agent="${ua}" ${proxyFlag} --no-first-run --no-default-browser-check ${targetUrl}`;
 
@@ -2199,7 +2201,7 @@
         }
         const now = new Date();
         const timestamp = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
-        const fileName = `omnishield_profiles_backup_${timestamp}.json`;
+        const fileName = `ghostcore_profiles_backup_${timestamp}.json`;
         const blob = new Blob([JSON.stringify(state.profiles, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -2249,7 +2251,7 @@
               });
               await saveProfilesBackend();
               render();
-              alert(`✓ Successfully merged ${addedCount} profiles from backup into OmniShield Studio!`);
+              alert(`✓ Successfully merged ${addedCount} profiles from backup into GhostCore Studio!`);
             } else {
               state.profiles = imported;
               await saveProfilesBackend();
@@ -2274,9 +2276,9 @@
           name: 'New Custom Profile',
           tags: ['Custom', 'Chrome'],
           status: 'stopped',
-          os: 'Windows 11',
-          browser: 'Chrome 150',
-          useragent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36',
+          os: state.hostOS || 'Windows 11',
+          browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
+          useragent: `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`,
           resolution: { width: 1920, height: 1080, dpr: 1 },
           hardware: { cpuCores: 8, memoryGb: 16, webGlVendor: 'Google Inc. (NVIDIA)', webGlRenderer: 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0)', canvasNoise: 'Noise' },
           proxy: { enabled: false, type: 'SOCKS5', ip: '', port: '', username: '', password: '', location: 'Direct Network', timezone: 'Asia/Kolkata' },
@@ -2491,7 +2493,7 @@
         const rendererPresetSelect = document.getElementById('modal-webgl-renderer-preset');
 
         if (val.includes('macOS')) {
-          const macUA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36';
+          const macUA = `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`;
           if (uaInput) {
             uaInput.value = macUA;
             if (uaPresetSelect) uaPresetSelect.value = macUA;
@@ -2502,7 +2504,7 @@
             if (rendererPresetSelect) rendererPresetSelect.value = 'Apple M3 Max';
           }
         } else if (val.includes('Linux') || val.includes('Ubuntu') || val.includes('Fedora')) {
-          const linuxUA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36';
+          const linuxUA = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`;
           if (uaInput) {
             uaInput.value = linuxUA;
             if (uaPresetSelect) uaPresetSelect.value = linuxUA;
@@ -2513,7 +2515,7 @@
             if (rendererPresetSelect) rendererPresetSelect.value = 'ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 Direct3D11 vs_5_0 ps_5_0)';
           }
         } else {
-          const winUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.7871.128 Safari/537.36';
+          const winUA = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${state.hostChromeVersion || '151.0.7922.173'} Safari/537.36`;
           if (uaInput) {
             uaInput.value = winUA;
             if (uaPresetSelect) uaPresetSelect.value = winUA;
@@ -2529,12 +2531,12 @@
 
     // In-device variable randomizer: Keeps device identity intact, varies OS, hardware specs & UA realistically
     function randomizeDeviceVariablesInPlace(currentOS, currentVendor, currentRenderer, currentUA) {
-      const osStr = currentOS || 'Windows 11';
+      const osStr = currentOS || state.hostOS || 'Windows 11';
       const vendorStr = currentVendor || 'Google Inc. (NVIDIA)';
       const rendererStr = currentRenderer || 'ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0)';
 
       // 1. OS Randomization (Authentic Desktop only)
-      let newOS = 'Windows 11';
+      let newOS = state.hostOS || 'Windows 11';
       if (osStr.includes('macOS') || osStr.includes('Mac')) {
         const macVersions = ['macOS Sonoma', 'macOS Ventura', 'macOS Monterey'];
         newOS = macVersions[Math.floor(Math.random() * macVersions.length)];
@@ -2622,7 +2624,7 @@
       const rendererInput = document.getElementById('modal-webgl-renderer');
       const uaInput = document.getElementById('modal-ua');
 
-      const currentOS = osSelect ? osSelect.value : 'Windows 11';
+      const currentOS = osSelect ? osSelect.value : (state.hostOS || 'Windows 11');
       const currentVendor = vendorSelect ? vendorSelect.value : 'Google Inc. (NVIDIA)';
       const currentRenderer = rendererInput ? rendererInput.value : '';
       const currentUA = uaInput ? uaInput.value : '';
@@ -2668,7 +2670,7 @@
           tags: ['Randomized', 'Chrome'],
           status: 'stopped',
           os: item.os,
-          browser: 'Chrome 150',
+          browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
           useragent: rnd.useragent,
           resolution: { width: item.resolution.width, height: item.resolution.height, dpr: item.os.includes('macOS') ? 2 : 1 },
           hardware: {
@@ -2779,7 +2781,7 @@
         const resVal = (resSelect ? resSelect.value : '1920x1080').split('x');
         const width = parseInt(resVal[0]) || 1920;
         const height = parseInt(resVal[1]) || 1080;
-        const os = osSelect ? osSelect.value : 'Windows 11';
+        const os = osSelect ? osSelect.value : (state.hostOS || 'Windows 11');
         const cpuCores = parseInt(cpuSelect ? cpuSelect.value : '8') || 8;
         const memoryGb = parseInt(ramSelect ? ramSelect.value : '16') || 16;
         const webGlVendor = vendorSelect ? vendorSelect.value : 'Google Inc. (NVIDIA)';
@@ -2843,7 +2845,7 @@
             tags: ['Custom', 'Chrome'],
             status: 'stopped',
             os,
-            browser: 'Chrome 150',
+            browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
             useragent,
             resolution: { width, height, dpr: 1 },
             hardware: { cpuCores, memoryGb, webGlVendor, webGlRenderer, canvasNoise: 'Noise' },
@@ -2883,7 +2885,7 @@
         const resVal = (resSelect ? resSelect.value : '1920x1080').split('x');
         const width = parseInt(resVal[0]) || 1920;
         const height = parseInt(resVal[1]) || 1080;
-        const os = osSelect ? osSelect.value : 'Windows 11';
+        const os = osSelect ? osSelect.value : (state.hostOS || 'Windows 11');
         const cpuCores = parseInt(cpuSelect ? cpuSelect.value : '8') || 8;
         const memoryGb = parseInt(ramSelect ? ramSelect.value : '16') || 16;
         const webGlVendor = vendorSelect ? vendorSelect.value : 'Google Inc. (NVIDIA)';
@@ -2919,7 +2921,7 @@
           tags: ['Custom', 'Chrome'],
           status: 'stopped',
           os,
-          browser: 'Chrome 150',
+          browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
           useragent,
           resolution: { width, height, dpr: 1 },
           hardware: { cpuCores, memoryGb, webGlVendor, webGlRenderer, canvasNoise: 'Noise' },
@@ -3213,7 +3215,7 @@
             tags: ['Bulk', item.os.split(' ')[0]],
             status: 'stopped',
             os: item.os,
-            browser: 'Chrome 150',
+            browser: 'Chrome ' + (state.hostChromeVersion ? state.hostChromeVersion.split('.')[0] : '151'),
             useragent: rnd.useragent,
             resolution: { width: item.resolution.width, height: item.resolution.height, dpr: item.os.includes('macOS') ? 2 : 1 },
             hardware: {
