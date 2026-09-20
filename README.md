@@ -7,7 +7,9 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg?style=flat-square&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg?style=flat-square)](LICENSE)
 
-**GhostCore** is a state-of-the-art virtual anti-detect browser studio built on portable Ungoogled Chromium. Designed for web scrapers, multi-account operators, automation engineers, and security researchers, GhostCore delivers completely isolated, genuine browser instances that achieve **100% authenticity scores** across commercial detection suites including **BrowserScan**, **BrowserLeaks**, and **CreepJS**.
+**GhostCore (v2.1)** is a state-of-the-art virtual anti-detect browser studio built on portable Ungoogled Chromium. Formerly known as OmniShield, GhostCore represents a massive architectural upgrade to the anti-detect engine. 
+
+Designed for web scrapers, multi-account operators, automation engineers, and security researchers, GhostCore delivers completely isolated, genuine browser instances that achieve **100% authenticity scores** across commercial detection suites including **BrowserScan**, **BrowserLeaks**, and **CreepJS**.
 
 ---
 
