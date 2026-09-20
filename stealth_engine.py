@@ -1641,24 +1641,75 @@ def launch_stealth_profile(profile_id, name, width, height, useragent, proxy_str
         chrome_args.append(f'--lang={locale.strip()}')
 
     active_bridge = None
-    if proxy_str:
-        chrome_args.append('--force-webrtc-ip-handling-policy=disable_non_proxied_udp')
-        try:
-            from proxy_bridge import start_local_proxy_tunnel
-            ptype = 'SOCKS5' if 'socks' in proxy_str.lower() else 'HTTP'
+    ghost_tunnel_instance = None
+
+    # Determine profile OS from useragent for Ghost Tunnel TLS/TCP profile
+    profile_os = 'Windows 11'  # default
+    if useragent:
+        if 'Macintosh' in useragent or 'Mac OS X' in useragent:
+            profile_os = 'macOS Sonoma'
+        elif 'Linux' in useragent and 'Android' not in useragent:
+            profile_os = 'Ubuntu 24.04 LTS'
+        elif 'Android' in useragent:
+            profile_os = 'Android'
+        elif 'iPhone' in useragent or 'iPad' in useragent:
+            profile_os = 'iOS'
+
+    # Try to launch Ghost Tunnel for TCP/TLS fingerprint alignment
+    try:
+        from ghost_tunnel_manager import start_ghost_tunnel
+        upstream_type = 'direct'
+        upstream_addr = ''
+        upstream_user = proxy_user or ''
+        upstream_pass = proxy_pass or ''
+
+        if proxy_str:
+            if 'socks' in proxy_str.lower():
+                upstream_type = 'socks5'
+            else:
+                upstream_type = 'http'
             clean_str = proxy_str.split('://')[-1]
             host_parts = clean_str.split(':')
-            px_ip = host_parts[0]
-            px_port = host_parts[1]
+            upstream_addr = f"{host_parts[0]}:{host_parts[1]}"
 
-            active_bridge, local_px_port = start_local_proxy_tunnel(ptype, px_ip, px_port, proxy_user, proxy_pass)
-            chrome_args.append(f'--proxy-server=http://127.0.0.1:{local_px_port}')
-            print(f"[Stealth Engine] Proxy Bridge active: 127.0.0.1:{local_px_port} -> {ptype} {px_ip}:{px_port}", flush=True)
-        except Exception as e:
-            print(f"[Stealth Engine] Proxy Bridge error, falling back to direct: {e}", flush=True)
-            chrome_args.append(f'--proxy-server={proxy_str}')
-    else:
-        chrome_args.append('--no-proxy-server')
+        ghost_tunnel_instance, tunnel_port = start_ghost_tunnel(
+            profile_os=profile_os,
+            upstream_type=upstream_type,
+            upstream_addr=upstream_addr,
+            upstream_user=upstream_user,
+            upstream_pass=upstream_pass
+        )
+
+        if tunnel_port > 0:
+            chrome_args.append(f'--proxy-server=http://127.0.0.1:{tunnel_port}')
+            if proxy_str:
+                chrome_args.append('--force-webrtc-ip-handling-policy=disable_non_proxied_udp')
+            print(f"[Stealth Engine] Ghost Tunnel active: all traffic routed through 127.0.0.1:{tunnel_port} (OS={profile_os})", flush=True)
+        else:
+            # Ghost Tunnel binary not available, fall back to legacy proxy_bridge
+            raise FileNotFoundError("Ghost Tunnel binary not found, using legacy proxy_bridge")
+
+    except Exception as e:
+        print(f"[Stealth Engine] Ghost Tunnel unavailable ({e}), falling back to legacy proxy...", flush=True)
+        ghost_tunnel_instance = None
+        if proxy_str:
+            chrome_args.append('--force-webrtc-ip-handling-policy=disable_non_proxied_udp')
+            try:
+                from proxy_bridge import start_local_proxy_tunnel
+                ptype = 'SOCKS5' if 'socks' in proxy_str.lower() else 'HTTP'
+                clean_str = proxy_str.split('://')[-1]
+                host_parts = clean_str.split(':')
+                px_ip = host_parts[0]
+                px_port = host_parts[1]
+
+                active_bridge, local_px_port = start_local_proxy_tunnel(ptype, px_ip, px_port, proxy_user, proxy_pass)
+                chrome_args.append(f'--proxy-server=http://127.0.0.1:{local_px_port}')
+                print(f"[Stealth Engine] Legacy Proxy Bridge active: 127.0.0.1:{local_px_port} -> {ptype} {px_ip}:{px_port}", flush=True)
+            except Exception as e2:
+                print(f"[Stealth Engine] Legacy Proxy Bridge error, falling back to direct: {e2}", flush=True)
+                chrome_args.append(f'--proxy-server={proxy_str}')
+        else:
+            chrome_args.append('--no-proxy-server')
 
     if url:
         chrome_args.append(url)
@@ -1701,7 +1752,7 @@ def launch_stealth_profile(profile_id, name, width, height, useragent, proxy_str
         print(f"[Stealth Engine CDP Error] {e}", flush=True)
         print(f"[Stealth Engine] Extension-based fingerprint protection is still active.", flush=True)
 
-    return proc.pid, port, active_bridge
+    return proc.pid, port, ghost_tunnel_instance or active_bridge
 
 if __name__ == '__main__':
     # Default launcher execution
