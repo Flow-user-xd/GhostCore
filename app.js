@@ -832,15 +832,15 @@
               <div>
                 <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Operating System</label>
                 <select id="modal-os" class="select-field">
-                  <optgroup label="💻 Windows Desktop">
+                  <optgroup label="💻 Windows Desktop (Safe for your Host)">
                     <option value="Windows 11" ${p.os === 'Windows 11' ? 'selected' : ''}>Windows 11 Pro 64-bit</option>
                     <option value="Windows 10" ${p.os === 'Windows 10' ? 'selected' : ''}>Windows 10 Pro 64-bit</option>
                   </optgroup>
-                  <optgroup label="🍏 macOS Desktop">
+                  <optgroup label="🍏 macOS Desktop (Disabled: Prevents Akamai TCP Detection)" ${(!state.hostOS || state.hostOS.includes('Windows') || state.hostOS.includes('Linux')) ? 'disabled' : ''}>
                     <option value="macOS Sonoma" ${p.os === 'macOS Sonoma' ? 'selected' : ''}>macOS 14 Sonoma</option>
                     <option value="macOS Ventura" ${p.os === 'macOS Ventura' ? 'selected' : ''}>macOS 13 Ventura</option>
                   </optgroup>
-                  <optgroup label="🐧 Linux Desktop">
+                  <optgroup label="🐧 Linux Desktop (Disabled: Prevents Akamai TCP Detection)" ${(!state.hostOS || state.hostOS.includes('Windows') || state.hostOS.includes('macOS')) ? 'disabled' : ''}>
                     <option value="Ubuntu 24.04 LTS" ${p.os === 'Ubuntu 24.04 LTS' ? 'selected' : ''}>Ubuntu 24.04 LTS</option>
                     <option value="Fedora 40" ${p.os === 'Fedora 40' ? 'selected' : ''}>Fedora 40 Workstation</option>
                   </optgroup>
@@ -1276,11 +1276,11 @@
             <div>
               <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Hardware Category Group</label>
               <select id="bulk-category" class="select-field">
-                <option value="all">🌟 All 50 Desktop & Laptop Devices (Mixed)</option>
+                <option value="all" ${(!state.hostOS || state.hostOS.includes('Windows')) ? 'disabled' : ''}>🌟 All 50 Desktop & Laptop Devices (Mixed)</option>
                 <option value="Laptops">💻 Laptops & Ultrabooks (Dell, ThinkPad, HP, Asus)</option>
                 <option value="Gaming & Workstations">🎮 High-End Gaming & Workstations (RTX 4090/4080, Alienware)</option>
-                <option value="Mac">🍏 Apple Silicon Macs (MacBook Pro M3, Mac Studio)</option>
-                <option value="Linux Workstations">🐧 Linux Workstations (Ubuntu, Fedora)</option>
+                <option value="Mac" ${(!state.hostOS || state.hostOS.includes('Windows') || state.hostOS.includes('Linux')) ? 'disabled' : ''}>🍏 Apple Silicon Macs (Disabled: Prevents Akamai TCP Detection)</option>
+                <option value="Linux Workstations" ${(!state.hostOS || state.hostOS.includes('Windows') || state.hostOS.includes('macOS')) ? 'disabled' : ''}>🐧 Linux Workstations (Disabled: Prevents Akamai TCP Detection)</option>
               </select>
             </div>
           </div>
