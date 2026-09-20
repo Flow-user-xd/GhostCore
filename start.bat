@@ -50,19 +50,19 @@ echo [+] Python 3 successfully installed!
 echo.
 
 :python_ready
-echo [1/3] Python detected:
+echo [1/4] Python detected:
 python --version
 
 :: 2. Verify Dependencies
 echo.
-echo [2/3] Checking requirements...
+echo [2/4] Checking requirements...
 if exist requirements.txt (
     python -m pip install -q -r requirements.txt
 )
 
 :: 3. Verify Chromium Engine
 echo.
-echo [3/3] Checking Chromium browser engine...
+echo [3/4] Checking Chromium browser engine...
 if exist "browser_core\chrome.exe" goto :chrome_ready
 
 echo.
@@ -92,6 +92,53 @@ echo [WARNING] Continuing without portable Chromium. Profiles cannot be launched
 echo.
 
 :chrome_ready
+:: 4. Verify Ghost Tunnel (Go Proxy)
+echo.
+echo [4/4] Checking Ghost Tunnel proxy...
+if exist "ghost_tunnel\ghost_tunnel.exe" goto :ghost_ready
+
+echo.
+echo ===================================================================
+echo   [!] Ghost Tunnel proxy not found.
+echo ===================================================================
+echo GhostCore requires the Go proxy to perfectly spoof macOS/Linux TCP/TLS.
+echo.
+set "INSTALL_GO=Y"
+set /p "INSTALL_GO=Would you like to install Go and build the proxy? [Y/N] (default: Y): "
+if /i "%INSTALL_GO%"=="N" goto :skip_ghost
+
+where go >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [*] Installing Go via Windows Package Manager (winget)...
+    winget install --id GoLang.Go -e --accept-package-agreements --accept-source-agreements
+    
+    :: Refresh PATH for Go
+    set "PATH=C:\Program Files\Go\bin;%PATH%"
+)
+
+where go >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [ERROR] Go installation failed or go.exe not in PATH. 
+    echo Please install Go manually from https://go.dev/dl/ and restart.
+    pause
+    goto :skip_ghost
+)
+
+echo [*] Building Ghost Tunnel...
+cd ghost_tunnel
+go mod tidy
+go build -ldflags="-s -w" -o ghost_tunnel.exe main.go
+cd ..
+
+if exist "ghost_tunnel\ghost_tunnel.exe" (
+    echo [+] Ghost Tunnel successfully built!
+) else (
+    echo [ERROR] Failed to build Ghost Tunnel.
+)
+
+:skip_ghost
+:ghost_ready
+
 echo.
 echo ===================================================================
 echo   Launching GhostCore Studio on http://localhost:3000 ...
