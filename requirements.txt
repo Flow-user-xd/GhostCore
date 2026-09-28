@@ -1,0 +1,2 @@
+# GhostCore Anti-Detect Studio Dependencies
+websockets>=12.0

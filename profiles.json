@@ -1,0 +1,39 @@
+[
+  {
+    "id": "prof-1790615900794",
+    "name": "MacBook Pro 14\" (M3 Pro) #426",
+    "tags": [
+      "Randomized",
+      "Chrome"
+    ],
+    "status": "stopped",
+    "os": "macOS Sonoma",
+    "browser": "Chrome 152",
+    "useragent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.7977.82 Safari/537.36",
+    "resolution": {
+      "width": 2560,
+      "height": 1440,
+      "dpr": 2
+    },
+    "hardware": {
+      "cpuCores": 8,
+      "memoryGb": 16,
+      "webGlVendor": "Apple Inc.",
+      "webGlRenderer": "Apple M3 Pro",
+      "canvasNoise": "Noise"
+    },
+    "proxy": {
+      "enabled": false,
+      "type": "SOCKS5",
+      "ip": "",
+      "port": "",
+      "username": "",
+      "password": "",
+      "location": "Direct Network",
+      "timezone": "Asia/Kolkata"
+    },
+    "storage": {
+      "cookiesCount": 0
+    }
+  }
+]

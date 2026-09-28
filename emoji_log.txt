@@ -1,0 +1,2 @@
+app.js: 790:               <span style="font-size: 1.3rem;">🛡️</span>
+app.js: 1051:               <span style="font-size: 0.78rem; color: #38bdf8; font-weight: 600;">🛡️ WebGL & Direct3D11 Report: <strong>Hardware Matched</strong></span>

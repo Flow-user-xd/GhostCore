@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostCore Studio | Multi-Profile Anti-Detect Browser</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="assets/logo_emblem.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    try {
+      var req = new XMLHttpRequest();
+      req.open('GET', '/api/version', false);
+      req.send(null);
+      if (req.status === 200) {
+        var data = JSON.parse(req.responseText);
+        window.detectedMajorVersion = data.major;
+        window.detectedFullVersion = data.full;
+      }
+    } catch(e) {
+      window.detectedMajorVersion = '153';
+      window.detectedFullVersion = '153.0.8010.36';
+    }
+  </script>
+  <script src="matrix_bg.js?v=2.0"></script>
+  <script src="src/data/deviceCatalog.js?v=24.0"></script>
+  <script src="app.js?v=29.0"></script>
+  <script src="rabbit.js?v=28.0"></script>
+</body>
+</html>
